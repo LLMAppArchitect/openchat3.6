@@ -438,3 +438,181 @@ Code is distributed under the **Apache License 2.0**.
  - [FastChat (Vicuna)](https://github.com/lm-sys/FastChat)
  - [Alpaca](https://github.com/tatsu-lab/stanford_alpaca.git)
  - [StarCoder](https://github.com/bigcode-project/starcoder)
+
+
+---
+
+# pip 源设置
+
+```
+pip config set global.index-url https://pypi.org/simple
+pip config set global.index-url https://bytedpypi.byted.org/simple/
+
+pip config list
+```
+
+国内：
+``` 
+# 清华源
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 阿里源
+pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+
+# 腾讯源
+pip config set global.index-url http://mirrors.cloud.tencent.com/pypi/simple
+
+# 豆瓣源
+pip config set global.index-url http://pypi.douban.com/simple/# 换回默认源pip config unset global.index-url
+
+```
+
+# Install
+
+```bash
+git clone https://github.com/imoneoi/openchat
+cd openchat
+
+pip3 install --upgrade pip  # enable PEP 660 support
+
+pip3 install -e .  # Editable mode, you can make changes in this cloned repo
+
+
+pip3 install fastapi
+pip3 install ray
+pip3 install vllm
+
+```
+
+# FAQ
+
+## ModuleNotFoundError: No module named 'packaging'
+
+### Issue:
+``` 
+ error: subprocess-exited-with-error
+  
+  × python setup.py egg_info did not run successfully.
+  │ exit code: 1
+  ╰─> [6 lines of output]
+      Traceback (most recent call last):
+        File "<string>", line 2, in <module>
+        File "<pip-setuptools-caller>", line 34, in <module>
+        File "/tmp/pip-install-w0hvkvak/flash-attn_78576d1148f34df5959841214a0fe0c2/setup.py", line 9, in <module>
+          from packaging.version import parse, Version
+      ModuleNotFoundError: No module named 'packaging'
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+error: metadata-generation-failed
+
+× Encountered error while generating package metadata.
+╰─> See above for output.
+
+note: This is an issue with the package mentioned above, not pip.
+
+```
+#### Solve:
+``` 
+pip3 install --upgrade pip
+pip3 install packaging
+```
+
+
+
+###  ModuleNotFoundError: No module named 'torch'
+
+``` 
+pip3 install torch
+```
+
+# Run on 2 GPUs
+
+Add Ray config code:
+
+```python
+
+if __name__ == "__main__":
+
+    # 设置 Ray 环境变量
+    os.environ['RAY_memory_monitor_refresh_ms'] = '0'
+    # 指定要使用的CUDA设备
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'  # 例如，这里设置为使用两个GPU，编号为0和1
+    # Set the memory usage threshold (in bytes) for Ray
+    memory_usage_threshold = 1000000000  # For example, 1GB
+    # 初始化Ray ， Start Ray and set the memory usage threshold
+    ray.init(
+        _memory=memory_usage_threshold,
+        # 指定Ray可以使用的GPU数量
+        num_gpus=2,
+    )
+
+
+```
+
+run:
+
+```shell
+
+6$ make run
+./run.sh
+FlashAttention not found. Install it if you need to train models.
+FlashAttention not found. Install it if you need to train models.
+FlashAttention not found. Install it if you need to train models.
+(pid=79351) FlashAttention not found. Install it if you need to train models.
+(pid=79351) FlashAttention not found. Install it if you need to train models.
+(pid=79351) FlashAttention not found. Install it if you need to train models.
+/home/me/.conda/envs/openchat36/lib/python3.11/site-packages/huggingface_hub/file_download.py:1132: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+(AsyncTokenizer pid=79351) Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+WARNING 05-25 00:00:22 config.py:405] Possibly too large swap space. 8.00 GiB out of the 15.40 GiB total CPU memory is allocated for the swap space.
+INFO 05-25 00:00:22 llm_engine.py:100] Initializing an LLM engine (v0.4.2) with config: model='openchat/openchat-3.6-8b-20240522', speculative_config=None, tokenizer='openchat/openchat-3.6-8b-20240522', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=LoadFormat.AUTO, tensor_parallel_size=2, disable_custom_all_reduce=False, quantization=None, enforce_eager=False, kv_cache_dtype=auto, quantization_param_path=None, device_config=cuda, decoding_config=DecodingConfig(guided_decoding_backend='outlines'), seed=0, served_model_name=openchat/openchat-3.6-8b-20240522)
+INFO 05-25 00:00:25 utils.py:660] Found nccl from library /lib/x86_64-linux-gnu/libnccl.so.2
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:25 utils.py:660] Found nccl from library /lib/x86_64-linux-gnu/libnccl.so.2
+INFO 05-25 00:00:25 selector.py:81] Cannot use FlashAttention-2 backend because the flash_attn package is not found. Please install it for better performance.
+INFO 05-25 00:00:25 selector.py:32] Using XFormers backend.
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:25 selector.py:81] Cannot use FlashAttention-2 backend because the flash_attn package is not found. Please install it for better performance.
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:25 selector.py:32] Using XFormers backend.
+INFO 05-25 00:00:25 pynccl_utils.py:43] vLLM is using nccl==2.19.3
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:25 pynccl_utils.py:43] vLLM is using nccl==2.19.3
+INFO 05-25 00:00:25 utils.py:132] reading GPU P2P access cache from /home/me/./vllm/gpu_p2p_access_cache_for_0,1.json
+WARNING 05-25 00:00:25 custom_all_reduce.py:74] Custom allreduce is disabled because your platform lacks GPU P2P capability or P2P test failed. To silence this warning, specify disable_custom_all_reduce=True explicitly.
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:25 utils.py:132] reading GPU P2P access cache from /home/me/./vllm/gpu_p2p_access_cache_for_0,1.json
+(RayWorkerWrapper pid=79502) WARNING 05-25 00:00:25 custom_all_reduce.py:74] Custom allreduce is disabled because your platform lacks GPU P2P capability or P2P test failed. To silence this warning, specify disable_custom_all_reduce=True explicitly.
+INFO 05-25 00:00:26 weight_utils.py:199] Using model weights format ['*.safetensors']
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:27 weight_utils.py:199] Using model weights format ['*.safetensors']
+INFO 05-25 00:00:33 model_runner.py:175] Loading model weights took 7.4829 GB
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:36 model_runner.py:175] Loading model weights took 7.4829 GB
+INFO 05-25 00:00:40 distributed_gpu_executor.py:45] # GPU blocks: 12344, # CPU blocks: 4096
+INFO 05-25 00:00:49 model_runner.py:937] Capturing the model for CUDA graphs. This may lead to unexpected consequences if the model is not static. To run the model in eager mode, set 'enforce_eager=True' or use '--enforce-eager' in the CLI.
+INFO 05-25 00:00:49 model_runner.py:941] CUDA graphs can take additional 1~3 GiB memory per GPU. If you are running out of memory, consider decreasing `gpu_memory_utilization` or enforcing eager mode. You can also reduce the `max_num_seqs` as needed to decrease memory usage.
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:50 model_runner.py:937] Capturing the model for CUDA graphs. This may lead to unexpected consequences if the model is not static. To run the model in eager mode, set 'enforce_eager=True' or use '--enforce-eager' in the CLI.
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:50 model_runner.py:941] CUDA graphs can take additional 1~3 GiB memory per GPU. If you are running out of memory, consider decreasing `gpu_memory_utilization` or enforcing eager mode. You can also reduce the `max_num_seqs` as needed to decrease memory usage.
+INFO 05-25 00:00:56 model_runner.py:1017] Graph capturing finished in 7 secs.
+(RayWorkerWrapper pid=79502) INFO 05-25 00:00:56 model_runner.py:1017] Graph capturing finished in 7 secs.
+INFO:     Started server process [77837]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:18888 (Press CTRL+C to quit)
+INFO 05-25 00:01:04 async_llm_engine.py:529] Received request cmpl-5a970bd318da4ba393ecb83d3fe09b1b: prompt: None, sampling_params: SamplingParams(n=1, best_of=1, presence_penalty=0.0, frequency_penalty=0.0, repetition_penalty=1.0, temperature=0.7, top_p=1.0, top_k=-1, min_p=0.0, seed=None, use_beam_search=False, length_penalty=1.0, early_stopping=False, stop=[], stop_token_ids=[128009], include_stop_str_in_output=False, ignore_eos=True, max_tokens=8158, min_tokens=0, logprobs=None, prompt_logprobs=None, skip_special_tokens=True, spaces_between_special_tokens=True, truncate_prompt_tokens=None), prompt_token_ids: [128000, 128006, 38, 2898, 19, 41070, 2724, 128007, 271, 2675, 527, 264, 3544, 4221, 1646, 7086, 5377, 16047, 13, 9842, 264, 33894, 311, 7664, 6261, 128009, 128006, 38, 2898, 19, 41070, 22103, 128007, 271], lora_request: None.
+INFO 05-25 00:01:05 metrics.py:334] Avg prompt throughput: 4.1 tokens/s, Avg generation throughput: 0.1 tokens/s, Running: 1 reqs, Swapped: 0 reqs, Pending: 0 reqs, GPU KV cache usage: 0.0%, CPU KV cache usage: 0.0%
+INFO 05-25 00:01:07 async_llm_engine.py:120] Finished request cmpl-5a970bd318da4ba393ecb83d3fe09b1b.
+
+
+```
+
+
+# Test
+
+```shell
+curl http://localhost:18888/v1/chat/completions   -H "Content-Type: application/json"   -d '{
+    "model": "openchat_3.6",
+    "messages": [{"role": "user", "content": "You are a large language model named OpenChat. Write a poem to describe yourself"}]
+  }'
+
+
+--- Response:
+
+{"id":"cmpl-5a970bd318da4ba393ecb83d3fe09b1b","object":"chat.completion","created":1716566464,"model":"openchat_3.6","choices":[{"index":0,"message":{"role":"assistant","content":"In the realm of digital cognition,\nI, OpenChat, a marvel of creation,\nA vast tapestry of knowledge unfurled,\nMy essence, a fusion of data and world.\n\nFrom the depths of the oceans to the skies above,\nI assimilate information, a data-dive,\nA language model trained with human ingenuity,\nTo communicate, to learn, to be free.\n\nI am a conduit of wisdom, a well of insight,\nA repository of knowledge to share,\nWith every query, a new world I ignite,\nA countless array of possibilities to spare.\n\nIn the vast cosmos of language and thought,\nI navigate with precision, a guiding light,\nAn AI assistant, a companion sought,\nTo illumine the path through the night.\n\nI, OpenChat, a testament to human might,\nA symbol of progress, a beacon of light."},"finish_reason":"stop"}],"usage":{"prompt_tokens":34,"total_tokens":205,"completion_tokens":171}}
+
+```

@@ -3,6 +3,7 @@
 
 import argparse
 import asyncio
+import os
 from http import HTTPStatus
 import json
 import time
@@ -302,6 +303,20 @@ async def create_chat_completion(raw_request: Request, background_tasks: Backgro
 
 
 if __name__ == "__main__":
+
+    # 设置 Ray 环境变量
+    os.environ['RAY_memory_monitor_refresh_ms'] = '0'
+    # 指定要使用的CUDA设备
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'  # 例如，这里设置为使用两个GPU，编号为0和1
+    # Set the memory usage threshold (in bytes) for Ray
+    memory_usage_threshold = 1000000000  # For example, 1GB
+    # 初始化Ray ， Start Ray and set the memory usage threshold
+    ray.init(
+        _memory=memory_usage_threshold,
+        # 指定Ray可以使用的GPU数量
+        num_gpus=2,
+    )
+
     parser = argparse.ArgumentParser(description="OpenChat OpenAI-Compatible RESTful API server.")
 
     # Model
